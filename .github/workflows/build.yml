@@ -5,6 +5,7 @@ on:
   push:
     paths:
       - 'android/**'
+      - '.github/workflows/**'
 
 jobs:
   build:
@@ -20,13 +21,18 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
 
-      - name: Grant execute permission for gradlew
+      - name: Create Gradle wrapper
+        run: |
+          cd android
+          gradle wrapper --gradle-version 8.11.1
+
+      - name: Grant execute permission
         run: chmod +x android/gradlew
 
       - name: Build APK
         run: |
           cd android
-          ./gradlew assembleDebug --stacktrace
+          ./gradlew assembleDebug --stacktrace --no-daemon
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
