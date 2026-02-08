@@ -179,3 +179,4 @@ APK/
 ## Лицензия
 
 MIT License
+# Build trigger
