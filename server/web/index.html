@@ -1,0 +1,200 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Remote File Manager</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link rel="icon" href="data:,">
+  <meta name="color-scheme" content="dark only">
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">Remote FM</div>
+    <div class="connection-status" id="connectionStatus">
+      <span class="status-dot"></span>
+      <span class="status-text">Connecting...</span>
+    </div>
+  </header>
+
+  <!-- Device List View -->
+  <main class="wrap" id="deviceListView">
+    <table>
+      <thead>
+        <tr>
+          <th class="cell-id">Device</th>
+          <th class="cell-name">Name</th>
+          <th class="cell-ip">IP адрес</th>
+          <th class="cell-version">Android</th>
+          <th class="cell-date">Подключено</th>
+          <th class="cell-status">Статус</th>
+          <th class="cell-actions">Действия</th>
+        </tr>
+      </thead>
+      <tbody id="deviceRows"></tbody>
+    </table>
+  </main>
+
+  <!-- File Manager View -->
+  <main class="wrap file-manager-view" id="fileManagerView" style="display: none;">
+    <div class="fm-header">
+      <button class="btn-back" id="btnBack">
+        <i class="fas fa-arrow-left"></i>
+        <span>К устройствам</span>
+      </button>
+      <div class="fm-device-info" id="fmDeviceInfo">
+        <span class="device-badge" id="fmDeviceName">Device Name</span>
+      </div>
+    </div>
+
+    <div class="fm-path-bar">
+      <button class="btn-icon" id="btnHome" title="Home"><i class="fas fa-home"></i></button>
+      <button class="btn-icon" id="btnUp" title="Up"><i class="fas fa-arrow-up"></i></button>
+      <input type="text" class="path-input" id="pathInput" value="/">
+      <button class="btn-icon" id="btnRefresh" title="Refresh"><i class="fas fa-sync-alt"></i></button>
+      <button class="btn-icon" id="btnNewFolder" title="New Folder"><i class="fas fa-folder-plus"></i></button>
+      <button class="btn-icon" id="btnUpload" title="Upload"><i class="fas fa-upload"></i></button>
+    </div>
+
+    <div class="fm-toolbar">
+      <div class="fm-selected-info" id="selectedInfo">
+        <span id="selectedCount">0 selected</span>
+      </div>
+      <div class="fm-actions">
+        <button class="btn-icon" id="btnDownload" title="Download" disabled>
+          <i class="fas fa-download"></i>
+        </button>
+        <button class="btn-icon" id="btnDelete" title="Delete" disabled>
+          <i class="fas fa-trash"></i>
+        </button>
+        <button class="btn-icon" id="btnRename" title="Rename" disabled>
+          <i class="fas fa-edit"></i>
+        </button>
+        <button class="btn-icon" id="btnZip" title="Zip" disabled>
+          <i class="fas fa-file-archive"></i>
+        </button>
+      </div>
+    </div>
+
+    <div class="fm-file-list" id="fileList">
+      <div class="fm-empty" id="fmEmpty">
+        <i class="fas fa-folder-open"></i>
+        <p>Empty folder</p>
+      </div>
+    </div>
+
+    <div class="fm-status-bar">
+      <span id="fileCount">0 items</span>
+      <span id="selectedSize"></span>
+    </div>
+  </main>
+
+  <!-- Upload Progress Modal -->
+  <div id="uploadModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>Uploading Files</h3>
+      </div>
+      <div class="modal-body">
+        <div class="upload-list" id="uploadList"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Download Progress Modal -->
+  <div id="downloadModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>Downloading Files</h3>
+        <button class="close-btn" id="closeDownloadModal">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="download-list" id="downloadList"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- New Folder Modal -->
+  <div id="newFolderModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>New Folder</h3>
+        <button class="close-btn" id="closeNewFolderModal">&times;</button>
+      </div>
+      <div class="modal-body">
+        <input type="text" class="input" id="newFolderName" placeholder="Folder name">
+        <div class="modal-actions">
+          <button class="btn-secondary" id="cancelNewFolder">Cancel</button>
+          <button class="btn-primary" id="confirmNewFolder">Create</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Rename Modal -->
+  <div id="renameModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>Rename</h3>
+        <button class="close-btn" id="closeRenameModal">&times;</button>
+      </div>
+      <div class="modal-body">
+        <input type="text" class="input" id="renameInput" placeholder="New name">
+        <div class="modal-actions">
+          <button class="btn-secondary" id="cancelRename">Cancel</button>
+          <button class="btn-primary" id="confirmRename">Rename</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Context Menu -->
+  <div id="contextMenu" class="context-menu">
+    <div class="context-menu-item" data-action="open">
+      <i class="fas fa-folder-open"></i>
+      <span>Open</span>
+    </div>
+    <div class="context-menu-item" data-action="download">
+      <i class="fas fa-download"></i>
+      <span>Download</span>
+    </div>
+    <div class="context-menu-item" data-action="rename">
+      <i class="fas fa-edit"></i>
+      <span>Rename</span>
+    </div>
+    <div class="context-menu-item" data-action="delete">
+      <i class="fas fa-trash"></i>
+      <span>Delete</span>
+    </div>
+    <div class="context-menu-divider"></div>
+    <div class="context-menu-item" data-action="zip">
+      <i class="fas fa-file-archive"></i>
+      <span>Zip</span>
+    </div>
+    <div class="context-menu-item" data-action="info">
+      <i class="fas fa-info-circle"></i>
+      <span>Properties</span>
+    </div>
+  </div>
+
+  <!-- Confirm Delete Modal -->
+  <div id="confirmModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 id="confirmTitle">Confirm</h3>
+        <button class="close-btn" id="closeConfirmModal">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p id="confirmMessage"></p>
+        <div class="modal-actions">
+          <button class="btn-secondary" id="cancelConfirm">Cancel</button>
+          <button class="btn-danger" id="confirmAction">Confirm</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
